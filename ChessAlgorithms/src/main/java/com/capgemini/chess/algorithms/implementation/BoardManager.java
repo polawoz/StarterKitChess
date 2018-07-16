@@ -1,10 +1,12 @@
 package com.capgemini.chess.algorithms.implementation;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 import com.capgemini.chess.algorithms.data.Coordinate;
 import com.capgemini.chess.algorithms.data.Move;
+import com.capgemini.chess.algorithms.data.MoveValidator;
 import com.capgemini.chess.algorithms.data.enums.BoardState;
 import com.capgemini.chess.algorithms.data.enums.Color;
 import com.capgemini.chess.algorithms.data.enums.MoveType;
@@ -23,19 +25,23 @@ import com.capgemini.chess.algorithms.implementation.exceptions.KingInCheckExcep
 public class BoardManager {
 
 	private Board board = new Board();
+	private HashMap<Piece, MoveValidator> mapOfMovingRules;
 
 	public BoardManager() {
 		initBoard();
+		initMoveValidators();
 	}
 
 	public BoardManager(List<Move> moves) {
 		initBoard();
+		initMoveValidators();
 		for (Move move : moves) {
 			addMove(move);
 		}
 	}
 
 	public BoardManager(Board board) {
+		initMoveValidators();
 		this.board = board;
 	}
 
@@ -74,10 +80,42 @@ public class BoardManager {
 	 *
 	 * @return state of the chess board
 	 */
+
+	private void initMoveValidators() {
+		// TODO moja wlasna metoda (wywolana w konstruktorach)
+
+		BishopMoveValidator bishopMoveValidator = new BishopMoveValidator();
+		KingMoveValidator kingMoveValidator= new KingMoveValidator();
+		KnightMoveValidator knightMoveValidator = new KnightMoveValidator();
+		WhitePawnMoveValidator whitePawnMoveValidator = new WhitePawnMoveValidator();
+		BlackPawnMoveValidator blackPawnMoveValidator = new BlackPawnMoveValidator();
+		QueenMoveValidator queenMoveValidator = new QueenMoveValidator();
+		RookMoveValidator rookMoveValidator = new RookMoveValidator();
+		
+		
+		mapOfMovingRules = new HashMap<>();
+
+		mapOfMovingRules.put(Piece.WHITE_BISHOP, bishopMoveValidator);
+		mapOfMovingRules.put(Piece.BLACK_BISHOP, bishopMoveValidator);
+		mapOfMovingRules.put(Piece.WHITE_KING, kingMoveValidator);
+		mapOfMovingRules.put(Piece.BLACK_KING, kingMoveValidator);
+		mapOfMovingRules.put(Piece.WHITE_KNIGHT, knightMoveValidator);
+		mapOfMovingRules.put(Piece.BLACK_KNIGHT, knightMoveValidator);
+		mapOfMovingRules.put(Piece.WHITE_PAWN, whitePawnMoveValidator);
+		mapOfMovingRules.put(Piece.BLACK_PAWN, blackPawnMoveValidator);
+		mapOfMovingRules.put(Piece.WHITE_QUEEN, queenMoveValidator);
+		mapOfMovingRules.put(Piece.BLACK_QUEEN, queenMoveValidator);
+		mapOfMovingRules.put(Piece.WHITE_ROOK, rookMoveValidator);
+		mapOfMovingRules.put(Piece.BLACK_ROOK, rookMoveValidator);
+
+	}
+
 	public BoardState updateBoardState() {
 
 		Color nextMoveColor = calculateNextMoveColor();
-
+		// sprawdza czy jest mozliwosc ruchu, bo jesli jedyny mozliwy ruch
+		// powoduje ze nasz krol bedzie w szachu to wtedy
+		// nie jest mozliwy ruch
 		boolean isKingInCheck = isKingInCheck(nextMoveColor);
 		boolean isAnyMoveValid = isAnyMoveValid(nextMoveColor);
 
@@ -231,21 +269,141 @@ public class BoardManager {
 		this.board.setPieceAt(null, lastMove.getTo());
 	}
 
-	private Move validateMove(Coordinate from, Coordinate to) throws InvalidMoveException, KingInCheckException {
+	private boolean checkIfCoordinateIsInBoardRange(Coordinate coordinate) {
+		// TODO moja wlasna metoda
+		int coordinateX = coordinate.getX();
+		int coordinateY = coordinate.getY();
 
+		if (coordinateX <= Board.SIZE - 1 && coordinateX >= 0 && coordinateY <= Board.SIZE - 1 && coordinateY >= 0) {
+			return true;
+		}
+
+		return false;
+	}
+
+	private Move validateMove(Coordinate from, Coordinate to) throws InvalidMoveException, KingInCheckException {
 		// TODO please add implementation here
-		return null;
+
+		// sprawdzenie zasady 50 ruchow
+		boolean resultOfCheckingFiftyMoveRule = checkFiftyMoveRule();
+		if (resultOfCheckingFiftyMoveRule == true) {
+			throw new InvalidMoveException("Nie mozna wykonywac dalszych ruchow, poniewaz w poprzednich 50 rundach "
+					+ "zaden z graczy nie poruszyl pionkiem ani zadna figura nie zostala zbita!");
+		}
+
+		// sprawdzamy wspolrzedne
+		boolean CoordinateFromIsInRange = checkIfCoordinateIsInBoardRange(from);
+		boolean CoordinateToIsInRange = checkIfCoordinateIsInBoardRange(to);
+		if (!CoordinateFromIsInRange || !CoordinateToIsInRange) {
+			throw new InvalidMoveException("Wybrano wspolrzedne wykraczajace poza obszar planszy!");
+		}
+
+		if (from.equals(to)) {
+			throw new InvalidMoveException("Wspolrzedne poczatkowe sa takie same jak wspolrzedne koncowe!");
+		}
+
+		// sprawdzamy czy pole 'from' nie jest puste lub nie stoi na nim figura
+		// przeciwnika
+		// sprawdzenie czy na polu 'to' czy nie stoi nasza figura
+		Piece PieceStandingOnFromCoordinate = board.getPieceAt(from);
+		Piece PieceStandingOnToCoordinate = board.getPieceAt(to);
+
+		if (PieceStandingOnFromCoordinate == null) {
+			throw new InvalidMoveException("Na polu poczatkowym ruchu nie ma figury!");
+		}
+		if (PieceStandingOnFromCoordinate.getColor() != calculateNextMoveColor()) {
+			throw new InvalidMoveException("Na polu poczatkowym ruchu znajduje sie figura przeciwnika!");
+		}
+		if (PieceStandingOnToCoordinate != null) {
+			if (PieceStandingOnToCoordinate.getColor() == calculateNextMoveColor()) {
+				throw new InvalidMoveException("Na polu koncowym znajduje sie jedna z twoich figur!");
+			}
+		}
+
+		// sprawdzamy czy w wyniku tego ruchu nasz krol nie bedzie w szachu
+		if (willKingBeInCheck(to)) {
+			throw new KingInCheckException();
+		}
+
+		// sprawdzenie zasad
+		MoveValidator movingRules = mapOfMovingRules.get(PieceStandingOnFromCoordinate);
+		movingRules.setCurrentBoard(getBoard());
+		boolean isMovePossible = movingRules.isMovePossible(from, to);
+
+		if (isMovePossible) {
+			Move possibleMove = new Move();
+			possibleMove.setFrom(from);
+			possibleMove.setTo(to);
+			possibleMove.setMovedPiece(PieceStandingOnFromCoordinate);
+			possibleMove.setType(movingRules.getTypeOfTheValidatedMove());
+
+			return possibleMove;
+		} else {
+			throw new InvalidMoveException("Wybrana figura nie ma mozliwosci wykonania takiego ruchu!");
+		}
+
+	}
+
+	private boolean willKingBeInCheck(Coordinate to) {
+		
+		Color kingColor=calculateNextMoveColor();
+		
+		Board currentBoardCopy= this.board;
+		
+		
+		isKingInCheck(kingColor);
+		
+		//jak przekazac kopie planszy do metody isKingInCheck
+		//nie moge podmienic planszy z pola bo zmieni mi historie
+		//musialabym przechowac i tymczasowo podmienic plansze i historie
+		
+		// TODO moja wlasna metoda
+		return false;
 	}
 
 	private boolean isKingInCheck(Color kingColor) {
 
 		// TODO please add implementation here
+		// means is in position to be captured (is in check) and cannot escape
+		// from the capture
+
 		return false;
 	}
 
 	private boolean isAnyMoveValid(Color nextMoveColor) {
-
 		// TODO please add implementation here
+
+		Coordinate checkedCoordinate;
+		Piece pieceOnBoard;
+		PieceType typeOfPieceOnBoard;
+
+		for (int column = 0; column < Board.SIZE; column++) {
+			for (int row = 0; row < Board.SIZE; row++) {
+
+				checkedCoordinate = new Coordinate(column, row);
+
+				pieceOnBoard = board.getPieceAt(checkedCoordinate);
+
+				if (pieceOnBoard == null) {
+					continue;
+				}
+				Color colorOfPieceOnBoard = pieceOnBoard.getColor();
+				if (colorOfPieceOnBoard != nextMoveColor) {
+					continue;
+				}
+
+				
+
+				MoveValidator movingRules = mapOfMovingRules.get(pieceOnBoard);
+				movingRules.setCurrentBoard(getBoard());
+				boolean isAnyMovePossible = movingRules.isAnyMovePossible(checkedCoordinate);
+
+				if (isAnyMovePossible) {
+					return true;
+				}
+
+			}
+		}
 
 		return false;
 	}

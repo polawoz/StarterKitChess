@@ -10,6 +10,7 @@ import org.junit.Test;
 import com.capgemini.chess.algorithms.data.Coordinate;
 import com.capgemini.chess.algorithms.data.Move;
 import com.capgemini.chess.algorithms.data.enums.BoardState;
+import com.capgemini.chess.algorithms.data.enums.Color;
 import com.capgemini.chess.algorithms.data.enums.MoveType;
 import com.capgemini.chess.algorithms.data.enums.Piece;
 import com.capgemini.chess.algorithms.data.generated.Board;
@@ -237,6 +238,25 @@ public class BoardManagerTest {
 		assertEquals(Piece.WHITE_QUEEN, move.getMovedPiece());
 	}
 	
+	//moj wlasny
+	@Test
+	public void testPerformMoveBishopCapture() throws InvalidMoveException {
+		// given
+		Board board = new Board();
+		board.setPieceAt(Piece.WHITE_BISHOP, new Coordinate(5, 0));
+		board.setPieceAt(Piece.BLACK_PAWN, new Coordinate(7, 2));
+		
+		// when
+		BoardManager boardManager = new BoardManager(board);
+		Move move = boardManager.performMove(new Coordinate(5, 0), new Coordinate(7, 2));
+		
+		// then
+		assertEquals(MoveType.CAPTURE, move.getType());
+		assertEquals(Piece.WHITE_BISHOP, move.getMovedPiece());
+	}
+	
+	
+	
 	@Test
 	public void testPerformMoveRookCapture() throws InvalidMoveException {
 		// given
@@ -253,6 +273,45 @@ public class BoardManagerTest {
 		assertEquals(MoveType.CAPTURE, move.getType());
 		assertEquals(Piece.BLACK_ROOK, move.getMovedPiece());
 	}
+	
+	//moj wlasny
+	@Test
+	public void testPerformMoveRookAttack() throws InvalidMoveException {
+		// given
+		Board board = new Board();
+		board.getMoveHistory().add(createDummyMove(board));
+		board.setPieceAt(Piece.BLACK_ROOK, new Coordinate(1, 4));
+		
+		
+		// when
+		BoardManager boardManager = new BoardManager(board);
+		Move move = boardManager.performMove(new Coordinate(1, 4), new Coordinate(5, 4));
+		
+		// then
+		assertEquals(MoveType.ATTACK, move.getType());
+		assertEquals(Piece.BLACK_ROOK, move.getMovedPiece());
+	}
+	
+//	//moj wlasny
+//	@Test
+//	public void testCheckIsAnyMoveValid() throws InvalidMoveException, KingInCheckException {
+//		// given
+//		Board board = new Board();
+//		board.getMoveHistory().add(createDummyMove(board));
+//		board.setPieceAt(Piece.BLACK_ROOK, new Coordinate(1, 4));
+//		
+//		
+//		// when
+//		BoardManager boardManager = new BoardManager(board);
+//		boolean isAnyMoveValid = boardManager.isAnyMoveValid(Color.BLACK);
+//		
+//		// then
+//		assertEquals(true, isAnyMoveValid);
+//		
+//	}
+	
+	
+	
 	
 	@Test
 	public void testPerformMoveCastling() throws InvalidMoveException {
