@@ -292,6 +292,14 @@ public class BoardManagerTest {
 		assertEquals(Piece.BLACK_ROOK, move.getMovedPiece());
 	}
 	
+	
+	
+	
+	
+	
+	
+	
+	
 //	//moj wlasny
 //	@Test
 //	public void testCheckIsAnyMoveValid() throws InvalidMoveException, KingInCheckException {
