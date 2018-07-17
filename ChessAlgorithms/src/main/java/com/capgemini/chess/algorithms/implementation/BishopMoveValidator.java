@@ -1,6 +1,7 @@
 package com.capgemini.chess.algorithms.implementation;
 
 import com.capgemini.chess.algorithms.data.Coordinate;
+import com.capgemini.chess.algorithms.data.Move;
 import com.capgemini.chess.algorithms.data.MoveValidator;
 import com.capgemini.chess.algorithms.data.enums.MoveType;
 import com.capgemini.chess.algorithms.data.enums.Piece;
@@ -109,6 +110,12 @@ public class BishopMoveValidator implements MoveValidator {
 		// TODO Auto-generated method stub
 		this.currentBoard = currentBoard;
 
+	}
+
+	@Override
+	public void setLastMove(Move lastMove) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

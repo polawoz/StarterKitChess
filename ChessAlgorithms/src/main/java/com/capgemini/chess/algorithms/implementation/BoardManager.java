@@ -328,6 +328,15 @@ public class BoardManager {
 		// sprawdzenie zasad
 		MoveValidator movingRules = mapOfMovingRules.get(PieceStandingOnFromCoordinate);
 		movingRules.setCurrentBoard(getBoard());
+		List<Move> moveHistory = getBoard().getMoveHistory();
+		if(PieceStandingOnFromCoordinate.getType().equals(PieceType.PAWN) && !moveHistory.isEmpty()){
+			//tutaj przekazanie ostatniego ruchu
+			
+			Move lastMove = moveHistory.get(moveHistory.size()-1);
+			movingRules.setLastMove(lastMove);
+			
+		}
+		
 		boolean isMovePossible = movingRules.isMovePossible(from, to);
 
 		if (isMovePossible) {

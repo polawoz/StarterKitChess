@@ -10,6 +10,8 @@ public interface MoveValidator {
 	MoveType getTypeOfTheValidatedMove();
 
 	void setCurrentBoard(Board currentBoard);
+	
+	void setLastMove(Move lastMove);
 
 	default boolean isAnyMovePossible(Coordinate from) {
 
