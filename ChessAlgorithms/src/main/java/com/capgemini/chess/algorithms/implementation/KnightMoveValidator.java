@@ -98,10 +98,4 @@ public class KnightMoveValidator implements MoveValidator {
 
 	}
 
-	@Override
-	public void setLastMove(Move lastMove) {
-		// TODO Auto-generated method stub
-		
-	}
-
 }

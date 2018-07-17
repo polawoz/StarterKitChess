@@ -23,7 +23,6 @@ public class BlackPawnMoveValidator implements MoveValidator {
 	@Override
 	public boolean isMovePossible(Coordinate from, Coordinate to) {
 
-		
 		List<Move> moveHistory = currentBoard.getMoveHistory();
 
 		if (!moveHistory.isEmpty()) {
@@ -32,11 +31,7 @@ public class BlackPawnMoveValidator implements MoveValidator {
 			lastMove = moveHistory.get(moveHistory.size() - 1);
 
 		}
-		
-		
-		
-		
-		
+
 		boolean isMovePossible = false;
 		pieceStandingOnToCoordinate = currentBoard.getPieceAt(to);
 

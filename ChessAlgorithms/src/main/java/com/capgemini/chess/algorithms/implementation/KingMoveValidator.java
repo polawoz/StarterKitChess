@@ -114,12 +114,6 @@ public class KingMoveValidator implements MoveValidator {
 		
 		this.currentBoard=currentBoard;
 	}
-
-	@Override
-	public void setLastMove(Move lastMove) {
-		// TODO Auto-generated method stub
-		
-	}
 	
 	
 	

@@ -11,11 +11,10 @@ public interface MoveValidator {
 
 	void setCurrentBoard(Board currentBoard);
 	
-	void setLastMove(Move lastMove);
-
+	//ta metoda juz niepotrzebna
 	default boolean isAnyMovePossible(Coordinate from) {
 
-		boolean isAnyMovePossible;
+		boolean thereIsAPossibleMove;
 
 		int figurePositionX = from.getX(); // X to kolumna
 		int figurePositionY = from.getY();// Y to wiersz
@@ -27,9 +26,9 @@ public interface MoveValidator {
 				}
 
 				Coordinate to = new Coordinate(row, column);
-				isAnyMovePossible = isMovePossible(from, to);
+				thereIsAPossibleMove = isMovePossible(from, to);
 
-				if (isAnyMovePossible) {
+				if (thereIsAPossibleMove) {
 					return true;
 				}
 			}

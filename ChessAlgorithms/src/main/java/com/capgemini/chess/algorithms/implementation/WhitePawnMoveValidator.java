@@ -20,11 +20,10 @@ public class WhitePawnMoveValidator implements MoveValidator {
 	int destinationPositionX;
 	int destinationPositionY;
 	Piece pieceStandingOnToCoordinate;
-	
-	
+
 	@Override
 	public boolean isMovePossible(Coordinate from, Coordinate to) {
-	
+
 		List<Move> moveHistory = currentBoard.getMoveHistory();
 
 		if (!moveHistory.isEmpty()) {
@@ -33,21 +32,16 @@ public class WhitePawnMoveValidator implements MoveValidator {
 			lastMove = moveHistory.get(moveHistory.size() - 1);
 
 		}
-		
-		
-		
-		
-		
+
 		boolean isMovePossible = false;
 		pieceStandingOnToCoordinate = currentBoard.getPieceAt(to);
-	
-		
+
 		figurePositionX = from.getX();
 		figurePositionY = from.getY();
 
 		destinationPositionX = to.getX();
 		destinationPositionY = to.getY();
-		
+
 		boolean attemptedMoveIsBackwards = (figurePositionY - destinationPositionY) > 0;
 		if (attemptedMoveIsBackwards) {
 			return false;
@@ -90,17 +84,14 @@ public class WhitePawnMoveValidator implements MoveValidator {
 
 		return isMovePossible;
 	}
-	
-	
-	
-	
+
 	private boolean checkIfAttemptedVerticallMoveIsPossible(Coordinate from, Coordinate to) {
 
 		if (pieceStandingOnToCoordinate != null) {
 			return false;
 		}
 
-		boolean attemptedMoveIsBiggerThanOneStep = (destinationPositionY-figurePositionY) > 1;
+		boolean attemptedMoveIsBiggerThanOneStep = (destinationPositionY - figurePositionY) > 1;
 		if (attemptedMoveIsBiggerThanOneStep) {
 			// pozwalam na bycie bigger than one step tylko jesli (wykonuje
 			// sprawdzenie):
@@ -114,11 +105,7 @@ public class WhitePawnMoveValidator implements MoveValidator {
 			return true;
 		}
 	}
-	
-	
-	
-	
-	
+
 	private boolean checkIfAttemptedMoveIsEnPassant(Coordinate from) {
 
 		if (lastMove != null) {
@@ -130,8 +117,8 @@ public class WhitePawnMoveValidator implements MoveValidator {
 			Piece lastMovedPiece = lastMove.getMovedPiece();
 
 			if (lastMovedPiece.equals(Piece.BLACK_PAWN) && lastMoveFromY == 6 && lastMoveToY == 4
-					&& ((lastMoveFromX==figurePositionX-1 && lastMoveToX==figurePositionX-1) ||
-							(lastMoveFromX==figurePositionX+1 && lastMoveToX==figurePositionX+1 ))) {
+					&& ((lastMoveFromX == figurePositionX - 1 && lastMoveToX == figurePositionX - 1)
+							|| (lastMoveFromX == figurePositionX + 1 && lastMoveToX == figurePositionX + 1))) {
 
 				return true;
 			} else {
@@ -142,47 +129,28 @@ public class WhitePawnMoveValidator implements MoveValidator {
 		}
 
 	}
-	
-	
-	
-	
+
 	private boolean checkIfAttemptedMoveIsOneStepForwardDiagonall(Coordinate from, Coordinate to) {
 
-		if ((destinationPositionX==(figurePositionX-1) && destinationPositionY==(figurePositionY+1)) || 
-				(destinationPositionX==(figurePositionX+1)&& destinationPositionY==(figurePositionY+1))) {
+		if ((destinationPositionX == (figurePositionX - 1) && destinationPositionY == (figurePositionY + 1))
+				|| (destinationPositionX == (figurePositionX + 1) && destinationPositionY == (figurePositionY + 1))) {
 			return true;
 		}
 
 		return false;
 	}
-	
-	@Override
-	public void setLastMove(Move lastMove) {
-		this.lastMove=lastMove;
-		
-	}
 
 	@Override
 	public MoveType getTypeOfTheValidatedMove() {
-		
+
 		return possibleMoveType;
 	}
 
 	@Override
 	public void setCurrentBoard(Board currentBoard) {
-	
+
 		this.currentBoard = currentBoard;
-		
+
 	}
-
-
-
-
-	
-	
-	
-
-
-	
 
 }
