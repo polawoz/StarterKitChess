@@ -1,5 +1,7 @@
 package com.capgemini.chess.algorithms.implementation;
 
+import java.util.List;
+
 import com.capgemini.chess.algorithms.data.Coordinate;
 import com.capgemini.chess.algorithms.data.Move;
 import com.capgemini.chess.algorithms.data.MoveValidator;
@@ -21,6 +23,20 @@ public class BlackPawnMoveValidator implements MoveValidator {
 	@Override
 	public boolean isMovePossible(Coordinate from, Coordinate to) {
 
+		
+		List<Move> moveHistory = currentBoard.getMoveHistory();
+
+		if (!moveHistory.isEmpty()) {
+			// tutaj przekazanie ostatniego ruchu
+
+			lastMove = moveHistory.get(moveHistory.size() - 1);
+
+		}
+		
+		
+		
+		
+		
 		boolean isMovePossible = false;
 		pieceStandingOnToCoordinate = currentBoard.getPieceAt(to);
 

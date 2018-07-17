@@ -25,6 +25,10 @@ public class Board {
 	
 	public Board() {
 	}
+	
+	
+	
+	//dodatkowy konstruktor
 
 	public List<Move> getMoveHistory() {
 		return moveHistory;

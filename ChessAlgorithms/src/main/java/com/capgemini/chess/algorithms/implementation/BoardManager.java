@@ -85,14 +85,13 @@ public class BoardManager {
 		// TODO moja wlasna metoda (wywolana w konstruktorach)
 
 		BishopMoveValidator bishopMoveValidator = new BishopMoveValidator();
-		KingMoveValidator kingMoveValidator= new KingMoveValidator();
+		KingMoveValidator kingMoveValidator = new KingMoveValidator();
 		KnightMoveValidator knightMoveValidator = new KnightMoveValidator();
 		WhitePawnMoveValidator whitePawnMoveValidator = new WhitePawnMoveValidator();
 		BlackPawnMoveValidator blackPawnMoveValidator = new BlackPawnMoveValidator();
 		QueenMoveValidator queenMoveValidator = new QueenMoveValidator();
 		RookMoveValidator rookMoveValidator = new RookMoveValidator();
-		
-		
+
 		mapOfMovingRules = new HashMap<>();
 
 		mapOfMovingRules.put(Piece.WHITE_BISHOP, bishopMoveValidator);
@@ -321,22 +320,24 @@ public class BoardManager {
 		}
 
 		// sprawdzamy czy w wyniku tego ruchu nasz krol nie bedzie w szachu
-		if (willKingBeInCheck(to)) {
+		if (willKingBeInCheck(from, to)) {
 			throw new KingInCheckException();
 		}
 
 		// sprawdzenie zasad
 		MoveValidator movingRules = mapOfMovingRules.get(PieceStandingOnFromCoordinate);
 		movingRules.setCurrentBoard(getBoard());
-		List<Move> moveHistory = getBoard().getMoveHistory();
-		if(PieceStandingOnFromCoordinate.getType().equals(PieceType.PAWN) && !moveHistory.isEmpty()){
-			//tutaj przekazanie ostatniego ruchu
-			
-			Move lastMove = moveHistory.get(moveHistory.size()-1);
-			movingRules.setLastMove(lastMove);
-			
-		}
-		
+//		List<Move> moveHistory = getBoard().getMoveHistory();
+//
+//		if (PieceStandingOnFromCoordinate.getType().equals(PieceType.PAWN) && !moveHistory.isEmpty()) {
+//			// tutaj przekazanie ostatniego ruchu
+//
+//			Move lastMove = moveHistory.get(moveHistory.size() - 1);
+//			movingRules.setLastMove(lastMove);
+//
+//		}
+//		
+
 		boolean isMovePossible = movingRules.isMovePossible(from, to);
 
 		if (isMovePossible) {
@@ -353,21 +354,21 @@ public class BoardManager {
 
 	}
 
-	private boolean willKingBeInCheck(Coordinate to) {
-		
-		Color kingColor=calculateNextMoveColor();
-		
-		Board currentBoardCopy= this.board;
+	private boolean willKingBeInCheck(Coordinate from, Coordinate to) {
+
 		
 		
-		isKingInCheck(kingColor);
+		Color kingColor = calculateNextMoveColor();
 		
-		//jak przekazac kopie planszy do metody isKingInCheck
-		//nie moge podmienic planszy z pola bo zmieni mi historie
-		//musialabym przechowac i tymczasowo podmienic plansze i historie
 		
-		// TODO moja wlasna metoda
+		
+		//boolean kingWillBeInCheckAfterPerformedMove = isKingInCheck(kingColor);
+		
+	
+		//return kingWillBeInCheckAfterPerformedMove;
 		return false;
+		
+		
 	}
 
 	private boolean isKingInCheck(Color kingColor) {
@@ -375,6 +376,82 @@ public class BoardManager {
 		// TODO please add implementation here
 		// means is in position to be captured (is in check) and cannot escape
 		// from the capture
+
+		
+		//petla na znalezienie krola
+		Coordinate kingsCoordinate=null;
+		Coordinate currentlyCheckedCoordinate;
+		
+		for (int column = 0; column < Board.SIZE; column++) {
+			for (int row = 0; row < Board.SIZE; row++) {
+				
+				currentlyCheckedCoordinate = new Coordinate(column, row);
+				Piece PieceAtCurrentlyCheckedCoordinate=board.getPieceAt(currentlyCheckedCoordinate);
+				boolean spotIsNotEmpty = (PieceAtCurrentlyCheckedCoordinate != null);
+				
+				if (spotIsNotEmpty) {
+					PieceType pieceTypeOfPieceAtCurrentlyCheckedCoordinate = board.getPieceAt(currentlyCheckedCoordinate).getType();
+					boolean pieceTypeOfPieceAtCurrentlyCheckedCoordinateIsKing= pieceTypeOfPieceAtCurrentlyCheckedCoordinate.equals(PieceType.KING);
+					
+					if(!pieceTypeOfPieceAtCurrentlyCheckedCoordinateIsKing){
+						continue;
+					}
+					else{//sprawdzenie czy to krol w naszym kolorze
+						kingsCoordinate=currentlyCheckedCoordinate;
+						Color currentlyCheckedKingsColor=board.getPieceAt(kingsCoordinate).getColor();
+						if(currentlyCheckedKingsColor.equals(kingColor)){
+							currentlyCheckedCoordinate=null;
+							break;
+						}
+						
+					}
+					
+				}
+
+			}
+			
+			//tutaj sprawdzam znowu czy juz mam dobrego krola i jesli tak to break;
+			
+			
+			if(board.getPieceAt(kingsCoordinate).getColor().equals(kingColor)){
+				break;
+			}
+
+		}
+		
+		
+		//petla na sprawdzenie czy ktoras figura przeciwnika moze stanac na polu krola
+		for (int column = 0; column < Board.SIZE; column++) {
+			for (int row = 0; row < Board.SIZE; row++) {
+				currentlyCheckedCoordinate = new Coordinate(column, row);
+				Piece PieceAtCurrentlyCheckedCoordinate=board.getPieceAt(currentlyCheckedCoordinate);
+				boolean spotIsNotEmpty = (PieceAtCurrentlyCheckedCoordinate != null);
+				
+				if (spotIsNotEmpty) {
+					Color colorOfPieceAtCurrentlyCheckedCoordinate = PieceAtCurrentlyCheckedCoordinate.getColor();
+					if (colorOfPieceAtCurrentlyCheckedCoordinate.equals(kingColor)) {
+						break;
+					} 
+//					else {
+//						
+//						MoveValidator movingRules = mapOfMovingRules.get(currentlyCheckedCoordinate);
+//						movingRules.setCurrentBoard(getBoard());
+//						boolean isMovePossible = movingRules.isMovePossible(from, to);
+//						
+//							Move moveToKingsCoordinate=validateMove(currentlyCheckedCoordinate, kingsCoordinate);
+//							boolean moveToKingsCoordinateIsNotNull= moveToKingsCoordinate.equals(null);
+//							if(moveToKingsCoordinateIsNotNull){
+//								return true;
+//							}
+//							
+//						
+//						
+//					}
+				}
+
+			}
+
+		}
 
 		return false;
 	}
@@ -400,8 +477,6 @@ public class BoardManager {
 				if (colorOfPieceOnBoard != nextMoveColor) {
 					continue;
 				}
-
-				
 
 				MoveValidator movingRules = mapOfMovingRules.get(pieceOnBoard);
 				movingRules.setCurrentBoard(getBoard());

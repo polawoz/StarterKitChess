@@ -1,10 +1,13 @@
 package com.capgemini.chess.algorithms.implementation;
 
+import java.util.List;
+
 import com.capgemini.chess.algorithms.data.Coordinate;
 import com.capgemini.chess.algorithms.data.Move;
 import com.capgemini.chess.algorithms.data.MoveValidator;
 import com.capgemini.chess.algorithms.data.enums.MoveType;
 import com.capgemini.chess.algorithms.data.enums.Piece;
+import com.capgemini.chess.algorithms.data.enums.PieceType;
 import com.capgemini.chess.algorithms.data.generated.Board;
 
 public class WhitePawnMoveValidator implements MoveValidator {
@@ -22,6 +25,19 @@ public class WhitePawnMoveValidator implements MoveValidator {
 	@Override
 	public boolean isMovePossible(Coordinate from, Coordinate to) {
 	
+		List<Move> moveHistory = currentBoard.getMoveHistory();
+
+		if (!moveHistory.isEmpty()) {
+			// tutaj przekazanie ostatniego ruchu
+
+			lastMove = moveHistory.get(moveHistory.size() - 1);
+
+		}
+		
+		
+		
+		
+		
 		boolean isMovePossible = false;
 		pieceStandingOnToCoordinate = currentBoard.getPieceAt(to);
 	
