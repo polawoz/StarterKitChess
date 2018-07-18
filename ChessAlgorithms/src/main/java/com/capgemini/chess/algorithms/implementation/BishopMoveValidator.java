@@ -16,7 +16,6 @@ public class BishopMoveValidator implements MoveValidator {
 	@Override
 	public boolean isMovePossible(Coordinate from, Coordinate to) {
 
-
 		boolean isMovePossible = false;
 
 		int figurePositionX = from.getX();
@@ -34,66 +33,78 @@ public class BishopMoveValidator implements MoveValidator {
 			return false;
 		}
 
-		if ((figurePositionX < destinationPositionX && figurePositionY < destinationPositionY)
-				|| (figurePositionX > destinationPositionX && figurePositionY > destinationPositionY)) {
-			if (columnsDelta != rowsDelta) {
-				return false;
-			}
-		} else {
-			if (columnsDelta != -rowsDelta) {
-				return false;
-			}
+		if (Math.abs(rowsDelta) != Math.abs(columnsDelta)) {
+			return false;
 		}
+
+		// if ((figurePositionX < destinationPositionX && figurePositionY <
+		// destinationPositionY)
+		// || (figurePositionX > destinationPositionX && figurePositionY >
+		// destinationPositionY)) {
+		// if (columnsDelta != rowsDelta) {
+		// return false;
+		// }
+		// } else {
+		// if (columnsDelta != -rowsDelta) {
+		// return false;
+		// }
+		// }
 
 		// sprawdzenie czy po drodze nie stoi jakas figura - przygotowanie
 		// parametrow do petli
-		int checkedColumn;
-		int checkedRow;
-		int columnSingleIterationChange;
-		int rowSingleIterationChange;
-		int iterator = 0;
-		int loopLimit = Math.abs(columnsDelta) - 1;
 
-		if (figurePositionX < destinationPositionX) {
-			checkedColumn = figurePositionX + 1;
-			columnSingleIterationChange = 1;
-		} else {
-			checkedColumn = figurePositionX - 1;
-			columnSingleIterationChange = -1;
-		}
+		if (Math.abs(rowsDelta) != 1) {
 
-		if (figurePositionY < destinationPositionY) {
-			checkedRow = figurePositionY + 1;
-			rowSingleIterationChange = 1;
-		} else {
-			checkedRow = figurePositionY - 1;
-			rowSingleIterationChange = -1;
-		}
+			int checkedColumn;
+			int checkedRow;
+			int columnSingleIterationChange;
+			int rowSingleIterationChange;
+			int iterator = 0;
+			int loopLimit = Math.abs(columnsDelta) - 1;
 
-		// nie bedzie IndexOutOfBounds, bo chcemy zeby sprawdzilo zawartosc pol
-		// wszystkich po drodze oprocz pola finalnego
-
-		while (iterator < loopLimit) {
-
-			Coordinate currentlyCheckedCoordinate = new Coordinate(checkedColumn, checkedRow);
-			Piece pieceStandingOnCurrentlyCheckedCoordinate = currentBoard.getPieceAt(currentlyCheckedCoordinate);
-			if (pieceStandingOnCurrentlyCheckedCoordinate != null) {
-				return false;
+			if (figurePositionX < destinationPositionX) {
+				checkedColumn = figurePositionX + 1;
+				columnSingleIterationChange = 1;
 			} else {
-				isMovePossible = true;
+				checkedColumn = figurePositionX - 1;
+				columnSingleIterationChange = -1;
 			}
-			checkedColumn = checkedColumn + columnSingleIterationChange;
-			checkedRow = checkedRow + rowSingleIterationChange;
-			iterator++;
 
+			if (figurePositionY < destinationPositionY) {
+				checkedRow = figurePositionY + 1;
+				rowSingleIterationChange = 1;
+			} else {
+				checkedRow = figurePositionY - 1;
+				rowSingleIterationChange = -1;
+			}
+
+			while (iterator < loopLimit) {
+
+				Coordinate currentlyCheckedCoordinate = new Coordinate(checkedColumn, checkedRow);
+				Piece pieceStandingOnCurrentlyCheckedCoordinate = currentBoard.getPieceAt(currentlyCheckedCoordinate);
+
+				if (pieceStandingOnCurrentlyCheckedCoordinate != null) {
+
+					return false;
+				} else {
+
+					isMovePossible = true;
+				}
+				checkedColumn = checkedColumn + columnSingleIterationChange;
+				checkedRow = checkedRow + rowSingleIterationChange;
+				iterator++;
+
+			}
 		}
-
+		
 		// sprawdzenie czy na polu docelowym stoi figura przeciwnika (capture)
 		// lub czy jest puste (attack)
 		Piece pieceStandingOnToCoordinate = currentBoard.getPieceAt(to);
 		if (pieceStandingOnToCoordinate == null) {
+			isMovePossible=true;
 			possibleMoveType = MoveType.ATTACK;
 		} else {
+			isMovePossible=true;
 			possibleMoveType = MoveType.CAPTURE;
 		}
 
@@ -112,18 +123,5 @@ public class BishopMoveValidator implements MoveValidator {
 		this.currentBoard = currentBoard;
 
 	}
-	
-	
-	public void kingInCheckValidation(){
-		
-		if(currentBoard.getState().equals(BoardState.CHECK)){
-			
-			
-		}
-		
-	}
-
-
-
 
 }
