@@ -72,7 +72,7 @@ public class BoardManager {
 
 		addMove(move);
 
-		updateBoardState();
+		//updateBoardState();
 
 		return move;
 	}
@@ -280,7 +280,7 @@ public class BoardManager {
 		return false;
 	}
 
-	private boolean generalValidation(Coordinate from, Coordinate to) throws InvalidMoveException {
+	private boolean performGeneralValidation(Coordinate from, Coordinate to) throws InvalidMoveException {
 
 		// sprawdzenie zasady 50 ruchow
 		boolean resultOfCheckingFiftyMoveRule = checkFiftyMoveRule();
@@ -309,11 +309,11 @@ public class BoardManager {
 		if (PieceStandingOnFromCoordinate == null) {
 			throw new InvalidMoveException("Na polu poczatkowym ruchu nie ma figury!");
 		}
-		if (PieceStandingOnFromCoordinate.getColor() != calculateNextMoveColor()) {
+		if (!PieceStandingOnFromCoordinate.getColor().equals(calculateNextMoveColor())) {
 			throw new InvalidMoveException("Na polu poczatkowym ruchu znajduje sie figura przeciwnika!");
 		}
 		if (PieceStandingOnToCoordinate != null) {
-			if (PieceStandingOnToCoordinate.getColor() == calculateNextMoveColor()) {
+			if (PieceStandingOnToCoordinate.getColor().equals(calculateNextMoveColor())) {
 				throw new InvalidMoveException("Na polu koncowym znajduje sie jedna z twoich figur!");
 			}
 		}
@@ -324,12 +324,12 @@ public class BoardManager {
 	private Move validateMove(Coordinate from, Coordinate to) throws InvalidMoveException, KingInCheckException {
 		// TODO please add implementation here
 
-		generalValidation(from, to);
+		performGeneralValidation(from, to);
 
 		Piece PieceStandingOnFromCoordinate = board.getPieceAt(from);
 
 		MoveValidator movingRules = mapOfMovingRules.get(PieceStandingOnFromCoordinate);
-		movingRules.setCurrentBoard(getBoard());
+		movingRules.setCurrentBoard(board);
 
 		boolean isMovePossible = movingRules.isMovePossible(from, to);
 
@@ -349,35 +349,26 @@ public class BoardManager {
 
 	}
 
-	private boolean willKingBeInCheck(Move testedMove) throws InvalidMoveException {
+	private boolean willKingBeInCheck(Move testedMove) throws KingInCheckException {
 
 		Color kingColor = calculateNextMoveColor();
 
 		Coordinate testedMovesFromCoordinate = new Coordinate(testedMove.getFrom().getX(), testedMove.getFrom().getY());
 		Coordinate testedMovesToCoordinate = new Coordinate(testedMove.getTo().getX(), testedMove.getTo().getY());
-		Piece pieceThatIsGoingToBeCaptured = null;
-		if (board.getPieceAt(testedMovesToCoordinate) != null) {
-			pieceThatIsGoingToBeCaptured = board.getPieceAt(testedMovesToCoordinate);
-			// chyba nie dziala przy en passant
-		}
+		Piece testedMovesMovedPiece = testedMove.getMovedPiece();
+		Piece pieceThatIsGoingToBeCaptured = board.getPieceAt(testedMovesToCoordinate);
 
-		board.setPieceAt(testedMove.getMovedPiece(), testedMovesToCoordinate);
+		board.setPieceAt(testedMovesMovedPiece, testedMovesToCoordinate);
+		board.setPieceAt(null, testedMovesFromCoordinate);
 
-		// metoda wycofaj ostatni ruch
-		if (isKingInCheck(kingColor)) {
+		boolean kingIsInCheck = isKingInCheck(kingColor);
 
-			Piece lastMovedPiece = testedMove.getMovedPiece();
+		board.setPieceAt(testedMovesMovedPiece, testedMovesFromCoordinate);
+		board.setPieceAt(pieceThatIsGoingToBeCaptured, testedMovesToCoordinate);
 
-			board.setPieceAt(lastMovedPiece, testedMovesFromCoordinate);
-			board.setPieceAt(pieceThatIsGoingToBeCaptured, testedMovesToCoordinate);
-
+		if (kingIsInCheck) {
 			throw new KingInCheckException();
 		}
-
-		Piece lastMovedPiece = testedMove.getMovedPiece();
-
-		board.setPieceAt(lastMovedPiece, testedMovesFromCoordinate);
-		board.setPieceAt(pieceThatIsGoingToBeCaptured, testedMovesToCoordinate);
 
 		return false;
 
@@ -386,9 +377,33 @@ public class BoardManager {
 	private boolean isKingInCheck(Color kingColor) {
 
 		// TODO please add implementation here
+		Coordinate kingsCoordinate = getKingsCoordinate(kingColor);
+		boolean thereIsAFigureThatCanStandOnKingsCoordinate=false;
+		
+		if (kingsCoordinate != null) {
+			thereIsAFigureThatCanStandOnKingsCoordinate = checkIfAnyOfTheOpponentsFigureCanStandOnKingsSpot(kingsCoordinate);
+		}
 
-		// petla na znalezienie krola
-		Coordinate kingsCoordinate = null;
+		return thereIsAFigureThatCanStandOnKingsCoordinate;
+	}
+
+	private boolean checkIfThatFigureIsKingOfThatColor(Coordinate figuresCoordinate, Color kingColor){
+		
+		Piece figure = board.getPieceAt(figuresCoordinate);
+		PieceType figuresPieceType = figure.getType();
+		Color figuresColor= figure.getColor();
+		if(figuresPieceType.equals(PieceType.KING) && figuresColor.equals(kingColor)){
+			return true;
+		}
+		
+		
+		return false;
+	}
+	
+	
+	private Coordinate getKingsCoordinate(Color kingColor) {
+
+		//Coordinate kingsCoordinate = null;
 		Coordinate currentlyCheckedCoordinate = null;
 
 		for (int column = 0; column < Board.SIZE; column++) {
@@ -399,107 +414,92 @@ public class BoardManager {
 				boolean spotIsNotEmpty = (PieceAtCurrentlyCheckedCoordinate != null);
 
 				if (spotIsNotEmpty) {
-					PieceType pieceTypeOfPieceAtCurrentlyCheckedCoordinate = board
-							.getPieceAt(currentlyCheckedCoordinate).getType();
-					boolean pieceTypeOfPieceAtCurrentlyCheckedCoordinateIsKing = pieceTypeOfPieceAtCurrentlyCheckedCoordinate
-							.equals(PieceType.KING);
+				
+					boolean checkedFigureIsKingInTheRightColor = checkIfThatFigureIsKingOfThatColor(currentlyCheckedCoordinate, kingColor);
 
-					if (!pieceTypeOfPieceAtCurrentlyCheckedCoordinateIsKing) {
-						continue;
-					} else {// sprawdzenie czy to krol w naszym kolorze
-						Color currentlyCheckedKingsColor = board.getPieceAt(currentlyCheckedCoordinate).getColor();
-						if (currentlyCheckedKingsColor.equals(kingColor)) {
-							kingsCoordinate = new Coordinate(currentlyCheckedCoordinate.getX(),
-									currentlyCheckedCoordinate.getY());
-							break;
-						}
-
-					}
+					if (checkedFigureIsKingInTheRightColor) {
+						
+						return currentlyCheckedCoordinate;
+					} 
 
 				}
-
 			}
-
-			// tutaj sprawdzam znowu czy juz mam dobrego krola i jesli tak to
-			// break; do zmiany
-
-			Piece PieceAtCurrentlyCheckedCoordinate = board.getPieceAt(currentlyCheckedCoordinate);
-			boolean spotIsNotEmpty = (PieceAtCurrentlyCheckedCoordinate != null);
-
-			if (spotIsNotEmpty) {
-				if (board.getPieceAt(currentlyCheckedCoordinate).getType().equals(PieceType.KING)) {
-					if (board.getPieceAt(currentlyCheckedCoordinate).getColor().equals(kingColor)) {
-						break;
-					}
-				}
-			}
-
+		}
+			
+		return null;
+	}
+	
+	private boolean performGeneralValidationForOpponentsFigure(Coordinate from, Coordinate to) throws InvalidMoveException{
+		
+		// sprawdzamy wspolrzedne
+		boolean CoordinateFromIsInRange = checkIfCoordinateIsInBoardRange(from);
+		boolean CoordinateToIsInRange = checkIfCoordinateIsInBoardRange(to);
+		if (!CoordinateFromIsInRange || !CoordinateToIsInRange) {
+			throw new InvalidMoveException("Wybrano wspolrzedne wykraczajace poza obszar planszy!");
 		}
 
-		// petla na sprawdzenie czy ktoras figura przeciwnika moze stanac na
-		// polu krola
-		if (kingsCoordinate != null) {
+		if (from.equals(to)) {
+			throw new InvalidMoveException("Wspolrzedne poczatkowe sa takie same jak wspolrzedne koncowe!");
+		}
 
-			for (int column = 0; column < Board.SIZE; column++) {
-				for (int row = 0; row < Board.SIZE; row++) {
-					currentlyCheckedCoordinate = new Coordinate(column, row);
-					Piece PieceAtCurrentlyCheckedCoordinate = board.getPieceAt(currentlyCheckedCoordinate);
-					try {
-						generalValidation(currentlyCheckedCoordinate, kingsCoordinate);
-					} catch (InvalidMoveException e) {
-						continue;
-					}
+		// sprawdzamy czy pole 'from' nie jest puste lub nie stoi na nim figura
+		// przeciwnika
+		// sprawdzenie czy na polu 'to' czy nie stoi nasza figura
+		Piece PieceStandingOnFromCoordinate = board.getPieceAt(from);
+		//Piece PieceStandingOnToCoordinate = board.getPieceAt(to);
 
-					Color colorOfPieceAtCurrentlyCheckedCoordinate = PieceAtCurrentlyCheckedCoordinate.getColor();
-					if (colorOfPieceAtCurrentlyCheckedCoordinate.equals(kingColor)) {
-						break;
-					} else {
+		if (PieceStandingOnFromCoordinate == null) {
+			throw new InvalidMoveException("Na polu poczatkowym ruchu nie ma figury!");
+		}
+		//z tego wynikal blad
+		if (PieceStandingOnFromCoordinate.getColor().equals(calculateNextMoveColor())) {
+			throw new InvalidMoveException("Na polu poczatkowym ruchu znajduje sie figura przeciwnika!");
+		}
 
-						MoveValidator movingRules = mapOfMovingRules.get(PieceAtCurrentlyCheckedCoordinate);
-						movingRules.setCurrentBoard(getBoard());
-						boolean moveToKingsCoordinateIsPossible = movingRules.isMovePossible(currentlyCheckedCoordinate,
-								kingsCoordinate);
-						if (moveToKingsCoordinateIsPossible) {
-							return true;
-						}
 
-					}
+		return true;	
+	}
+	
+	
 
+	private boolean checkIfAnyOfTheOpponentsFigureCanStandOnKingsSpot(Coordinate kingsCoordinate) {
+		//sprawdzone
+		Color kingColor = board.getPieceAt(kingsCoordinate).getColor();
+
+		Coordinate currentlyCheckedCoordinate = null;
+
+		for (int column = 0; column < Board.SIZE; column++) {
+			for (int row = 0; row < Board.SIZE; row++) {
+				currentlyCheckedCoordinate = new Coordinate(column, row);
+				Piece PieceAtCurrentlyCheckedCoordinate = board.getPieceAt(currentlyCheckedCoordinate);
+				try {
+					performGeneralValidationForOpponentsFigure(currentlyCheckedCoordinate, kingsCoordinate);
+					//  to wyrzuca blad bo nie jezeli figura from nie jest moja to nie moge wykonac ruchu
+				} catch (InvalidMoveException e) {
+					continue;
+				}
+
+
+				MoveValidator movingRules = mapOfMovingRules.get(PieceAtCurrentlyCheckedCoordinate);
+				movingRules.setCurrentBoard(board);
+				boolean moveToKingsCoordinateIsPossible = movingRules.isMovePossible(currentlyCheckedCoordinate,
+						kingsCoordinate);
+				if (moveToKingsCoordinateIsPossible) {
+					return true;
 				}
 
 			}
+
 		}
 
 		return false;
 	}
 
-	private boolean isAnyMoveValidUnderCheck(Color nextMoveColor) {
-		// jezeli krol jest w szachu (czyli wywola isKingInCheck) to
-		// isAnyMoveValid sprawdza czy mozna w jakis sposob:
-		// (przesunac krola na pole niebedace w szachu, zbic figure ktora
-		// szachuje krola, zaslonic krola wlasna bierka)
-		// jesli sie nie da, to zwraca FALSE i zmienia sie BoardState na
-		// Check_Mate
-
-		return true;
-	}
-
 	private boolean isAnyMoveValid(Color nextMoveColor) {
 		// TODO please add implementation here
 
-		if (isKingInCheck(nextMoveColor)) {
-			if (isAnyMoveValidUnderCheck(nextMoveColor)) {
-				return true;
-			} else {
-				return false;
-			}
-		}
-
 		Coordinate checkedCoordinate;
 		Piece pieceOnBoard;
-
-		// jezeli krol nie jest w szachu to sprawdza metoda validateMove mozliwe
-		// ruchy
 
 		// zbieranie naszych figur
 		for (int column = 0; column < Board.SIZE; column++) {
@@ -531,18 +531,18 @@ public class BoardManager {
 
 		return false;
 	}
-
+	//TODO
 	private boolean checkIfThereIsAPossibleMoveForOneOfTheNextMovePlayersRemainingFigure(
 			Coordinate coordinateOfTheCheckedFigure) {
 
 		boolean thereIsAPossibleMoveForThatFigure = false;
 
-		Coordinate destinationCheckedCoordinate;
+		Coordinate currentlyCheckedDestinationCoordinate;
 		for (int column = 0; column < Board.SIZE; column++) {
 			for (int row = 0; row < Board.SIZE; row++) {
-				destinationCheckedCoordinate = new Coordinate(column, row);
+				currentlyCheckedDestinationCoordinate = new Coordinate(column, row);
 				try {
-					validateMove(coordinateOfTheCheckedFigure, destinationCheckedCoordinate);
+					validateMove(coordinateOfTheCheckedFigure, currentlyCheckedDestinationCoordinate);
 					thereIsAPossibleMoveForThatFigure = true;
 
 				} catch (KingInCheckException e) {
