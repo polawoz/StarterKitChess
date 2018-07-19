@@ -1,7 +1,6 @@
 package com.capgemini.chess.algorithms.implementation;
 
 import com.capgemini.chess.algorithms.data.Coordinate;
-import com.capgemini.chess.algorithms.data.Move;
 import com.capgemini.chess.algorithms.data.MoveValidator;
 import com.capgemini.chess.algorithms.data.enums.MoveType;
 import com.capgemini.chess.algorithms.data.enums.Piece;
@@ -14,23 +13,16 @@ public class RookMoveValidator implements MoveValidator {
 
 	@Override
 	public boolean isMovePossible(Coordinate from, Coordinate to) {
-		// TODO Auto-generated method stub
-
-		boolean isMovePossible = false;
-
+		
+		boolean moveIsPossible = false;
 		int figurePositionX = from.getX();
 		int figurePositionY = from.getY();
-
 		int destinationPositionX = to.getX();
 		int destinationPositionY = to.getY();
 
-		// sprawdzenie czy koordynat 'to' jest zgodny ze sposobem poruszania
-		// Rook
 		int columnsDelta = destinationPositionX - figurePositionX;
 		int rowsDelta = destinationPositionY - figurePositionY;
 		boolean changeIsHorizontal = false;
-
-		boolean changeIsOneStep = (Math.abs(columnsDelta) == 1 || Math.abs(rowsDelta) == 1);
 
 		if (columnsDelta != 0) {
 			changeIsHorizontal = true;
@@ -39,10 +31,9 @@ public class RookMoveValidator implements MoveValidator {
 			}
 		}
 
-		if (!changeIsOneStep) {
+		boolean changeIsOneStepStraight = (Math.abs(columnsDelta) == 1 || Math.abs(rowsDelta) == 1);
+		if (!changeIsOneStepStraight) {
 
-			// sprawdzenie czy po drodze nie stoi jakas figura - przygotowanie
-			// parametrow do petli
 			int checkedColumn;
 			int checkedRow;
 			int columnSingleIterationChange = 0;
@@ -82,7 +73,7 @@ public class RookMoveValidator implements MoveValidator {
 				if (pieceStandingOnCurrentlyCheckedCoordinate != null) {
 					return false;
 				} else {
-					isMovePossible = true;
+					moveIsPossible = true;
 				}
 				checkedColumn = checkedColumn + columnSingleIterationChange;
 				checkedRow = checkedRow + rowSingleIterationChange;
@@ -90,13 +81,11 @@ public class RookMoveValidator implements MoveValidator {
 
 			}
 			
-			
 		} else{
-			isMovePossible=true;
+			moveIsPossible=true;
 		}
 
-		// sprawdzenie czy na polu docelowym stoi figura przeciwnika (capture)
-		// lub czy jest puste (attack)
+	
 		Piece pieceStandingOnToCoordinate = currentBoard.getPieceAt(to);
 		if (pieceStandingOnToCoordinate == null) {
 			possibleMoveType = MoveType.ATTACK;
@@ -104,18 +93,16 @@ public class RookMoveValidator implements MoveValidator {
 			possibleMoveType = MoveType.CAPTURE;
 		}
 
-		return isMovePossible;
+		return moveIsPossible;
 	}
 
 	@Override
 	public MoveType getTypeOfTheValidatedMove() {
-		// TODO Auto-generated method stub
 		return possibleMoveType;
 	}
 
 	@Override
 	public void setCurrentBoard(Board currentBoard) {
-		// TODO Auto-generated method stub
 		this.currentBoard = currentBoard;
 	}
 

@@ -1,9 +1,7 @@
 package com.capgemini.chess.algorithms.implementation;
 
 import com.capgemini.chess.algorithms.data.Coordinate;
-import com.capgemini.chess.algorithms.data.Move;
 import com.capgemini.chess.algorithms.data.MoveValidator;
-import com.capgemini.chess.algorithms.data.enums.BoardState;
 import com.capgemini.chess.algorithms.data.enums.MoveType;
 import com.capgemini.chess.algorithms.data.enums.Piece;
 import com.capgemini.chess.algorithms.data.generated.Board;
@@ -16,16 +14,12 @@ public class BishopMoveValidator implements MoveValidator {
 	@Override
 	public boolean isMovePossible(Coordinate from, Coordinate to) {
 
-		boolean isMovePossible = false;
-
+		boolean moveIsPossible = false;
 		int figurePositionX = from.getX();
 		int figurePositionY = from.getY();
-
 		int destinationPositionX = to.getX();
 		int destinationPositionY = to.getY();
 
-		// sprawdzenie czy koordynat 'to' jest zgodny ze sposobem poruszania
-		// Bishopa
 		int columnsDelta = destinationPositionX - figurePositionX;
 		int rowsDelta = destinationPositionY - figurePositionY;
 
@@ -36,22 +30,6 @@ public class BishopMoveValidator implements MoveValidator {
 		if (Math.abs(rowsDelta) != Math.abs(columnsDelta)) {
 			return false;
 		}
-
-		// if ((figurePositionX < destinationPositionX && figurePositionY <
-		// destinationPositionY)
-		// || (figurePositionX > destinationPositionX && figurePositionY >
-		// destinationPositionY)) {
-		// if (columnsDelta != rowsDelta) {
-		// return false;
-		// }
-		// } else {
-		// if (columnsDelta != -rowsDelta) {
-		// return false;
-		// }
-		// }
-
-		// sprawdzenie czy po drodze nie stoi jakas figura - przygotowanie
-		// parametrow do petli
 
 		if (Math.abs(rowsDelta) != 1) {
 
@@ -88,38 +66,36 @@ public class BishopMoveValidator implements MoveValidator {
 					return false;
 				} else {
 
-					isMovePossible = true;
+					moveIsPossible = true;
 				}
 				checkedColumn = checkedColumn + columnSingleIterationChange;
 				checkedRow = checkedRow + rowSingleIterationChange;
 				iterator++;
 
 			}
-		}
-		
-		// sprawdzenie czy na polu docelowym stoi figura przeciwnika (capture)
-		// lub czy jest puste (attack)
-		Piece pieceStandingOnToCoordinate = currentBoard.getPieceAt(to);
-		if (pieceStandingOnToCoordinate == null) {
-			isMovePossible=true;
-			possibleMoveType = MoveType.ATTACK;
 		} else {
-			isMovePossible=true;
-			possibleMoveType = MoveType.CAPTURE;
+			moveIsPossible = true;
 		}
 
-		return isMovePossible;
+		if (moveIsPossible) {
+			Piece pieceStandingOnToCoordinate = currentBoard.getPieceAt(to);
+			if (pieceStandingOnToCoordinate == null) {
+				possibleMoveType = MoveType.ATTACK;
+			} else {
+				possibleMoveType = MoveType.CAPTURE;
+			}
+		}
+
+		return moveIsPossible;
 	}
 
 	@Override
 	public MoveType getTypeOfTheValidatedMove() {
-		// TODO Auto-generated method stub
 		return possibleMoveType;
 	}
 
 	@Override
 	public void setCurrentBoard(Board currentBoard) {
-		// TODO Auto-generated method stub
 		this.currentBoard = currentBoard;
 
 	}

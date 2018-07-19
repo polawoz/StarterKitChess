@@ -7,14 +7,12 @@ import com.capgemini.chess.algorithms.data.Move;
 import com.capgemini.chess.algorithms.data.MoveValidator;
 import com.capgemini.chess.algorithms.data.enums.MoveType;
 import com.capgemini.chess.algorithms.data.enums.Piece;
-import com.capgemini.chess.algorithms.data.enums.PieceType;
 import com.capgemini.chess.algorithms.data.generated.Board;
 
 public class WhitePawnMoveValidator implements MoveValidator {
 
 	MoveType possibleMoveType;
 	Board currentBoard;
-	Move lastMove;
 	int figurePositionX;
 	int figurePositionY;
 	int destinationPositionX;
@@ -24,21 +22,9 @@ public class WhitePawnMoveValidator implements MoveValidator {
 	@Override
 	public boolean isMovePossible(Coordinate from, Coordinate to) {
 
-		List<Move> moveHistory = currentBoard.getMoveHistory();
-
-		if (!moveHistory.isEmpty()) {
-			// tutaj przekazanie ostatniego ruchu
-
-			lastMove = moveHistory.get(moveHistory.size() - 1);
-
-		}
-
-		boolean isMovePossible = false;
 		pieceStandingOnToCoordinate = currentBoard.getPieceAt(to);
-
 		figurePositionX = from.getX();
 		figurePositionY = from.getY();
-
 		destinationPositionX = to.getX();
 		destinationPositionY = to.getY();
 
@@ -49,10 +35,10 @@ public class WhitePawnMoveValidator implements MoveValidator {
 
 		if (figurePositionX == destinationPositionX) {
 
-			boolean attemptedVerticallMoveIsPossible = checkIfAttemptedVerticallMoveIsPossible(from, to);
+			boolean attemptedVerticallMoveIsPossible = checkIfAttemptedVerticallMoveIsPossible();
 			if (attemptedVerticallMoveIsPossible) {
-				isMovePossible = true;
 				possibleMoveType = MoveType.ATTACK;
+				return true;
 			} else {
 				return false;
 			}
@@ -60,19 +46,19 @@ public class WhitePawnMoveValidator implements MoveValidator {
 
 		if (figurePositionX != destinationPositionX) {
 
-			boolean attemptedMoveIsOneStepForwardDiagonall = checkIfAttemptedMoveIsOneStepForwardDiagonall(from, to);
+			boolean attemptedMoveIsOneStepForwardDiagonall = checkIfAttemptedMoveIsOneStepForwardDiagonall();
 			if (attemptedMoveIsOneStepForwardDiagonall) {
 
 				if (pieceStandingOnToCoordinate != null) {
-					isMovePossible = true;
 					possibleMoveType = MoveType.CAPTURE;
+					return true;
 
 				} else {
 
-					boolean attemptedMoveIsEnPassant = checkIfAttemptedMoveIsEnPassant(from);
+					boolean attemptedMoveIsEnPassant = checkIfAttemptedMoveIsEnPassant();
 					if (attemptedMoveIsEnPassant) {
-						isMovePossible = true;
 						possibleMoveType = MoveType.EN_PASSANT;
+						return true;
 					} else {
 						return false;
 					}
@@ -82,10 +68,10 @@ public class WhitePawnMoveValidator implements MoveValidator {
 			}
 		}
 
-		return isMovePossible;
+		return false;
 	}
 
-	private boolean checkIfAttemptedVerticallMoveIsPossible(Coordinate from, Coordinate to) {
+	private boolean checkIfAttemptedVerticallMoveIsPossible() {
 
 		if (pieceStandingOnToCoordinate != null) {
 			return false;
@@ -93,8 +79,6 @@ public class WhitePawnMoveValidator implements MoveValidator {
 
 		boolean attemptedMoveIsBiggerThanOneStep = (destinationPositionY - figurePositionY) > 1;
 		if (attemptedMoveIsBiggerThanOneStep) {
-			// pozwalam na bycie bigger than one step tylko jesli (wykonuje
-			// sprawdzenie):
 
 			if (figurePositionY == 1 && destinationPositionY == 3) {
 				return true;
@@ -106,7 +90,15 @@ public class WhitePawnMoveValidator implements MoveValidator {
 		}
 	}
 
-	private boolean checkIfAttemptedMoveIsEnPassant(Coordinate from) {
+	private boolean checkIfAttemptedMoveIsEnPassant() {
+
+		List<Move> moveHistory = currentBoard.getMoveHistory();
+		Move lastMove = null;
+
+		if (!moveHistory.isEmpty()) {
+			lastMove = moveHistory.get(moveHistory.size() - 1);
+
+		}
 
 		if (lastMove != null) {
 			int lastMoveFromY = lastMove.getFrom().getY();
@@ -130,7 +122,7 @@ public class WhitePawnMoveValidator implements MoveValidator {
 
 	}
 
-	private boolean checkIfAttemptedMoveIsOneStepForwardDiagonall(Coordinate from, Coordinate to) {
+	private boolean checkIfAttemptedMoveIsOneStepForwardDiagonall() {
 
 		if ((destinationPositionX == (figurePositionX - 1) && destinationPositionY == (figurePositionY + 1))
 				|| (destinationPositionX == (figurePositionX + 1) && destinationPositionY == (figurePositionY + 1))) {
