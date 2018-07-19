@@ -72,7 +72,7 @@ public class BoardManager {
 
 		addMove(move);
 
-		// updateBoardState();
+		//updateBoardState();
 
 		return move;
 	}

@@ -237,47 +237,7 @@ public class BoardManagerTest {
 		assertEquals(MoveType.CAPTURE, move.getType());
 		assertEquals(Piece.WHITE_QUEEN, move.getMovedPiece());
 	}
-	
-	//moj wlasny
-	@Test
-	public void testPerformMoveBishopCapture() throws InvalidMoveException {
-		// given
-		Board board = new Board();
-		board.setPieceAt(Piece.WHITE_BISHOP, new Coordinate(5, 0));
-		board.setPieceAt(Piece.BLACK_PAWN, new Coordinate(7, 2));
-		
-		// when
-		BoardManager boardManager = new BoardManager(board);
-		Move move = boardManager.performMove(new Coordinate(5, 0), new Coordinate(7, 2));
-		
-		// then
-		assertEquals(MoveType.CAPTURE, move.getType());
-		assertEquals(Piece.WHITE_BISHOP, move.getMovedPiece());
-	}
-	
-	
-	//moj wlasny
-		@Test
-		public void testPerformMoveBishopOneStepCapture() throws InvalidMoveException {
-			// given
-			Board board = new Board();
-			board.setPieceAt(Piece.WHITE_KING, new Coordinate(2, 0));
-			board.setPieceAt(Piece.BLACK_KING, new Coordinate(0, 7));
-			board.setPieceAt(Piece.WHITE_BISHOP, new Coordinate(4, 4));
-			board.setPieceAt(Piece.BLACK_PAWN, new Coordinate(7, 1));
-			board.setPieceAt(Piece.WHITE_PAWN, new Coordinate(6, 6));
-			board.setPieceAt(Piece.BLACK_PAWN, new Coordinate(5, 3));
-			
-			// when
-			BoardManager boardManager = new BoardManager(board);
-			Move move = boardManager.performMove(new Coordinate(4, 4), new Coordinate(5, 3));
-			
-			// then
-			assertEquals(MoveType.CAPTURE, move.getType());
-			assertEquals(Piece.WHITE_BISHOP, move.getMovedPiece());
-		}
-		
-	
+
 	
 	@Test
 	public void testPerformMoveRookCapture() throws InvalidMoveException {
@@ -295,52 +255,6 @@ public class BoardManagerTest {
 		assertEquals(MoveType.CAPTURE, move.getType());
 		assertEquals(Piece.BLACK_ROOK, move.getMovedPiece());
 	}
-	
-	//moj wlasny
-	@Test
-	public void testPerformMoveRookAttack() throws InvalidMoveException {
-		// given
-		Board board = new Board();
-		board.getMoveHistory().add(createDummyMove(board));
-		board.setPieceAt(Piece.BLACK_ROOK, new Coordinate(1, 4));
-		
-		
-		// when
-		BoardManager boardManager = new BoardManager(board);
-		Move move = boardManager.performMove(new Coordinate(1, 4), new Coordinate(5, 4));
-		
-		// then
-		assertEquals(MoveType.ATTACK, move.getType());
-		assertEquals(Piece.BLACK_ROOK, move.getMovedPiece());
-	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-//	//moj wlasny
-//	@Test
-//	public void testCheckIsAnyMoveValid() throws InvalidMoveException, KingInCheckException {
-//		// given
-//		Board board = new Board();
-//		board.getMoveHistory().add(createDummyMove(board));
-//		board.setPieceAt(Piece.BLACK_ROOK, new Coordinate(1, 4));
-//		
-//		
-//		// when
-//		BoardManager boardManager = new BoardManager(board);
-//		boolean isAnyMoveValid = boardManager.isAnyMoveValid(Color.BLACK);
-//		
-//		// then
-//		assertEquals(true, isAnyMoveValid);
-//		
-//	}
-	
-	
 	
 	
 	@Test
@@ -762,31 +676,7 @@ public class BoardManagerTest {
 		assertEquals(BoardState.CHECK, boardState);
 	}
 	
-	
-	//moj Test
-	@Test
-	public void testShouldThrowKingInCheck(){
-		//given
-		Board board = new Board();
-		
-		board.getMoveHistory().add(createDummyMove(board));
-		board.setPieceAt(Piece.BLACK_KING, new Coordinate(7, 0));
-		board.setPieceAt(Piece.WHITE_KNIGHT, new Coordinate(5, 2));
-		board.setPieceAt(Piece.WHITE_KING, new Coordinate(6, 2));
-		
-		//when
-		BoardManager boardManager = new BoardManager(board);
-		boolean exceptionThrown = false;
-		try {
-			boardManager.performMove(new Coordinate(7, 0), new Coordinate(6, 0));
-		} catch (InvalidMoveException e) {
-			exceptionThrown = e instanceof KingInCheckException;
-		}
-		
-		// then 
-		assertTrue(exceptionThrown);
-		
-	}
+
 	
 	@Test
 	public void testUpdateBoardStateCheckMate() throws InvalidMoveException {
@@ -811,8 +701,6 @@ public class BoardManagerTest {
 		Board board = new Board();
 		board.getMoveHistory().add(createDummyMove(board));
 		board.setPieceAt(Piece.BLACK_KING, new Coordinate(7, 0));
-		//board.setPieceAt(Piece.WHITE_KNIGHT, new Coordinate(5, 2));
-		//board.setPieceAt(Piece.WHITE_ROOK, new Coordinate(6, 1));
 		board.setPieceAt(Piece.WHITE_QUEEN, new Coordinate(5, 1));
 		board.setPieceAt(Piece.WHITE_KING, new Coordinate(6, 2));
 		
@@ -824,26 +712,7 @@ public class BoardManagerTest {
 		assertEquals(BoardState.STALE_MATE, boardState);
 	}
 	
-	//moj test
-	@Test
-	public void testUpdateBoardStateStaleMatePola() throws InvalidMoveException {
-		// given
-		Board board = new Board();
-		board.getMoveHistory().add(createDummyMove(board));
-		board.setPieceAt(Piece.BLACK_KING, new Coordinate(7, 0));
 	
-		board.setPieceAt(Piece.WHITE_ROOK, new Coordinate(2, 1));
-		board.setPieceAt(Piece.WHITE_ROOK, new Coordinate(6, 5));
-		
-		board.setPieceAt(Piece.WHITE_KING, new Coordinate(3, 7));
-		
-		// when
-		BoardManager boardManager = new BoardManager(board);
-		BoardState boardState = boardManager.updateBoardState();
-		
-		// then
-		assertEquals(BoardState.STALE_MATE, boardState);
-	}
 	
 	@Test
 	public void testCheckThreefoldRepetitionRuleSuccessful() {
