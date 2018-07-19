@@ -72,8 +72,6 @@ public class BoardManager {
 
 		addMove(move);
 
-		//updateBoardState();
-
 		return move;
 	}
 
@@ -84,7 +82,6 @@ public class BoardManager {
 	 */
 
 	private void initMoveValidators() {
-		// TODO moja wlasna metoda (wywolana w konstruktorach)
 
 		BishopMoveValidator bishopMoveValidator = new BishopMoveValidator();
 		KingMoveValidator kingMoveValidator = new KingMoveValidator();
@@ -114,9 +111,7 @@ public class BoardManager {
 	public BoardState updateBoardState() {
 
 		Color nextMoveColor = calculateNextMoveColor();
-		// sprawdza czy jest mozliwosc ruchu, bo jesli jedyny mozliwy ruch
-		// powoduje ze nasz krol bedzie w szachu to wtedy
-		// nie jest mozliwy ruch
+
 		boolean isKingInCheck = isKingInCheck(nextMoveColor);
 		boolean isAnyMoveValid = isAnyMoveValid(nextMoveColor);
 
@@ -269,7 +264,6 @@ public class BoardManager {
 	}
 
 	private boolean checkIfCoordinateIsInBoardRange(Coordinate coordinate) {
-		// TODO moja wlasna metoda
 		int coordinateX = coordinate.getX();
 		int coordinateY = coordinate.getY();
 
@@ -282,14 +276,12 @@ public class BoardManager {
 
 	private boolean performGeneralValidation(Coordinate from, Coordinate to) throws InvalidMoveException {
 
-		// sprawdzenie zasady 50 ruchow
 		boolean resultOfCheckingFiftyMoveRule = checkFiftyMoveRule();
 		if (resultOfCheckingFiftyMoveRule == true) {
 			throw new InvalidMoveException("Nie mozna wykonywac dalszych ruchow, poniewaz w poprzednich 50 rundach "
 					+ "zaden z graczy nie poruszyl pionkiem ani zadna figura nie zostala zbita!");
 		}
 
-		// sprawdzamy wspolrzedne
 		boolean CoordinateFromIsInRange = checkIfCoordinateIsInBoardRange(from);
 		boolean CoordinateToIsInRange = checkIfCoordinateIsInBoardRange(to);
 		if (!CoordinateFromIsInRange || !CoordinateToIsInRange) {
@@ -300,9 +292,6 @@ public class BoardManager {
 			throw new InvalidMoveException("Wspolrzedne poczatkowe sa takie same jak wspolrzedne koncowe!");
 		}
 
-		// sprawdzamy czy pole 'from' nie jest puste lub nie stoi na nim figura
-		// przeciwnika
-		// sprawdzenie czy na polu 'to' czy nie stoi nasza figura
 		Piece PieceStandingOnFromCoordinate = board.getPieceAt(from);
 		Piece PieceStandingOnToCoordinate = board.getPieceAt(to);
 
@@ -340,17 +329,25 @@ public class BoardManager {
 			possibleMove.setMovedPiece(PieceStandingOnFromCoordinate);
 			possibleMove.setType(movingRules.getTypeOfTheValidatedMove());
 			// sprawdzamy czy w wyniku tego ruchu nasz krol nie bedzie w szachu
+			
+			if(possibleMove.getType().equals(MoveType.EN_PASSANT)){
+				//inna metoda willKingBeInCheckForEnPassant
+				//albo w willKingBeInCheck dodac parametr z typem ruchu i wtedy kasowaloby co innego
+			}
+			
 			willKingBeInCheck(possibleMove);
-
+			
 			return possibleMove;
 		} else {
 			throw new InvalidMoveException("Wybrana figura nie ma mozliwosci wykonania takiego ruchu!");
 		}
 
 	}
+	
+	
 
 	private boolean willKingBeInCheck(Move testedMove) throws KingInCheckException {
-		// tu musi byc blad
+
 		Color kingColor = calculateNextMoveColor();
 
 		Coordinate testedMovesFromCoordinate = new Coordinate(testedMove.getFrom().getX(), testedMove.getFrom().getY());
@@ -358,23 +355,15 @@ public class BoardManager {
 		Piece testedMovesMovedPiece = testedMove.getMovedPiece();
 		Piece pieceThatIsGoingToBeCaptured = board.getPieceAt(testedMovesToCoordinate);
 
-		// ewetualnie jakis dodatkowy warunek jelsli to krol
-
 		board.setPieceAt(testedMovesMovedPiece, testedMovesToCoordinate);
 		board.setPieceAt(null, testedMovesFromCoordinate);
-		boolean kingInCheckBackupVar = false;
-		
-		Coordinate kingsCoordinate = getKingsCoordinate(kingColor);
 
 		boolean kingIsInCheck = isKingInCheck(kingColor);
-		if (kingIsInCheck == true) {
-			kingInCheckBackupVar = true;
-		}
 
 		board.setPieceAt(testedMovesMovedPiece, testedMovesFromCoordinate);
 		board.setPieceAt(pieceThatIsGoingToBeCaptured, testedMovesToCoordinate);
 
-		if (kingInCheckBackupVar) {
+		if (kingIsInCheck) {
 			throw new KingInCheckException();
 		}
 
@@ -383,9 +372,7 @@ public class BoardManager {
 	}
 
 	private boolean isKingInCheck(Color kingColor) {
-
 		// TODO please add implementation here
-		//tu sprawdz jakie sa koordynaty czy sa te nowe czy poczoatkowe
 		Coordinate kingsCoordinate = getKingsCoordinate(kingColor);
 		boolean thereIsAFigureThatCanStandOnKingsCoordinate = false;
 
@@ -399,7 +386,6 @@ public class BoardManager {
 
 	private Coordinate getKingsCoordinate(Color kingColor) {
 
-		// Coordinate kingsCoordinate = null;
 		Coordinate currentlyCheckedCoordinate = null;
 
 		for (int column = 0; column < Board.SIZE; column++) {
@@ -440,9 +426,7 @@ public class BoardManager {
 
 
 	private boolean checkIfAnyOfTheOpponentsFigureCanStandOnKingsSpot(Coordinate kingsCoordinate) {
-		// sprawdzone
-		Color kingColor = board.getPieceAt(kingsCoordinate).getColor();
-
+		
 		Coordinate currentlyCheckedCoordinate = null;
 
 		for (int column = 0; column < Board.SIZE; column++) {
@@ -477,7 +461,6 @@ public class BoardManager {
 	private boolean performGeneralValidationForOpponentsFigure(Coordinate from, Coordinate to)
 			throws InvalidMoveException {
 
-		// sprawdzamy wspolrzedne
 		boolean CoordinateFromIsInRange = checkIfCoordinateIsInBoardRange(from);
 		boolean CoordinateToIsInRange = checkIfCoordinateIsInBoardRange(to);
 		if (!CoordinateFromIsInRange || !CoordinateToIsInRange) {
@@ -490,14 +473,12 @@ public class BoardManager {
 
 		// sprawdzamy czy pole 'from' nie jest puste lub nie stoi na nim figura
 		// przeciwnika
-		// sprawdzenie czy na polu 'to' czy nie stoi nasza figura
 		Piece PieceStandingOnFromCoordinate = board.getPieceAt(from);
-		// Piece PieceStandingOnToCoordinate = board.getPieceAt(to);
 
 		if (PieceStandingOnFromCoordinate == null) {
 			throw new InvalidMoveException("Na polu poczatkowym ruchu nie ma figury!");
 		}
-		// z tego wynikal blad
+	
 		if (PieceStandingOnFromCoordinate.getColor().equals(calculateNextMoveColor())) {
 			throw new InvalidMoveException("Na polu poczatkowym ruchu znajduje sie figura przeciwnika!");
 		}

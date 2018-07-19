@@ -30,6 +30,8 @@ public class RookMoveValidator implements MoveValidator {
 		int rowsDelta = destinationPositionY - figurePositionY;
 		boolean changeIsHorizontal = false;
 
+		boolean changeIsOneStep = (Math.abs(columnsDelta) == 1 || Math.abs(rowsDelta) == 1);
+
 		if (columnsDelta != 0) {
 			changeIsHorizontal = true;
 			if (rowsDelta != 0) {
@@ -37,53 +39,60 @@ public class RookMoveValidator implements MoveValidator {
 			}
 		}
 
-		// sprawdzenie czy po drodze nie stoi jakas figura - przygotowanie
-		// parametrow do petli
-		int checkedColumn;
-		int checkedRow;
-		int columnSingleIterationChange = 0;
-		int rowSingleIterationChange = 0;
-		int iterator = 0;
-		int loopLimit = 0;
+		if (!changeIsOneStep) {
 
-		if (changeIsHorizontal) {
-			checkedRow = figurePositionY;
-			loopLimit = Math.abs(columnsDelta) - 1;
+			// sprawdzenie czy po drodze nie stoi jakas figura - przygotowanie
+			// parametrow do petli
+			int checkedColumn;
+			int checkedRow;
+			int columnSingleIterationChange = 0;
+			int rowSingleIterationChange = 0;
+			int iterator = 0;
+			int loopLimit = 0;
 
-			if (columnsDelta > 0) {
-				checkedColumn = figurePositionX + 1;
-				columnSingleIterationChange = 1;
+			if (changeIsHorizontal) {
+				checkedRow = figurePositionY;
+				loopLimit = Math.abs(columnsDelta) - 1;
+
+				if (columnsDelta > 0) {
+					checkedColumn = figurePositionX + 1;
+					columnSingleIterationChange = 1;
+				} else {
+					checkedColumn = figurePositionX - 1;
+					columnSingleIterationChange = -1;
+				}
 			} else {
-				checkedColumn = figurePositionX - 1;
-				columnSingleIterationChange = -1;
-			}
-		} else {
-			checkedColumn = figurePositionX;
-			loopLimit = Math.abs(rowsDelta) - 1;
+				checkedColumn = figurePositionX;
+				loopLimit = Math.abs(rowsDelta) - 1;
 
-			if (rowsDelta > 0) {
-				checkedRow = figurePositionY + 1;
-				rowSingleIterationChange = 1;
-			} else {
-				checkedRow = figurePositionY - 1;
-				rowSingleIterationChange = -1;
+				if (rowsDelta > 0) {
+					checkedRow = figurePositionY + 1;
+					rowSingleIterationChange = 1;
+				} else {
+					checkedRow = figurePositionY - 1;
+					rowSingleIterationChange = -1;
+				}
+
 			}
 
-		}
+			while (iterator < loopLimit) {
 
-		while (iterator < loopLimit) {
+				Coordinate currentlyCheckedCoordinate = new Coordinate(checkedColumn, checkedRow);
+				Piece pieceStandingOnCurrentlyCheckedCoordinate = currentBoard.getPieceAt(currentlyCheckedCoordinate);
+				if (pieceStandingOnCurrentlyCheckedCoordinate != null) {
+					return false;
+				} else {
+					isMovePossible = true;
+				}
+				checkedColumn = checkedColumn + columnSingleIterationChange;
+				checkedRow = checkedRow + rowSingleIterationChange;
+				iterator++;
 
-			Coordinate currentlyCheckedCoordinate = new Coordinate(checkedColumn, checkedRow);
-			Piece pieceStandingOnCurrentlyCheckedCoordinate = currentBoard.getPieceAt(currentlyCheckedCoordinate);
-			if (pieceStandingOnCurrentlyCheckedCoordinate != null) {
-				return false;
-			} else {
-				isMovePossible = true;
 			}
-			checkedColumn = checkedColumn + columnSingleIterationChange;
-			checkedRow = checkedRow + rowSingleIterationChange;
-			iterator++;
-
+			
+			
+		} else{
+			isMovePossible=true;
 		}
 
 		// sprawdzenie czy na polu docelowym stoi figura przeciwnika (capture)
